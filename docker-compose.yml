@@ -1,0 +1,51 @@
+version: '3'
+services:
+  database:
+    image: mysql:8.0.32
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'directus'
+      MYSQL_USER: 'directus'
+      MYSQL_PASSWORD: 'directus'
+      MYSQL_ROOT_PASSWORD: 'directus'
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data/database:/var/lib/mysql
+
+  cache:
+    image: redis:6
+
+  directus:
+    image: directus/directus:10.4.0
+    restart: always
+    ports:
+      - 8055:8055
+    volumes:
+      - ./uploads:/directus/uploads
+      - ./migrations:/directus/extensions/migrations
+    depends_on:
+      - cache
+      - database
+    environment:
+      KEY: '255d861b-5ea1-5996-9aa3-922530ec40b1'
+      SECRET: '6116487b-cda1-52c2-b5b5-c8022c45e263'
+
+      DB_CLIENT: 'mysql'
+      DB_HOST: 'database'
+      DB_PORT: '3306'
+      DB_DATABASE: 'directus'
+      DB_USER: 'directus'
+      DB_PASSWORD: 'directus'
+
+      CACHE_ENABLED: 'true'
+      CACHE_STORE: 'redis'
+      REDIS: 'redis://cache:6379'
+
+      ADMIN_EMAIL: 'admin@example.com'
+      ADMIN_PASSWORD: 'd1r3ctu5'
+
+      # Make sure to set this in production
+      # (see https://docs.directus.io/self-hosted/config-options#general)
+      # PUBLIC_URL: 'https://directus.example.com'
